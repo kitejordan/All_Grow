@@ -1,5 +1,6 @@
 const Crop = require('../models/Crop.js');
 const User = require('../models/Users.js');
+const redisClient = require('../config/redis.js');
 
 exports.addCrop = async (req,res)=> {           //add crop
     try{
@@ -57,15 +58,25 @@ exports.searchCrops = async (req,res) => {                      //search crops b
             query.name = {$regex: new RegExp(name,"i")};            //case-insensitive search
         }
 
-        // Ensure minPrice and maxPrice are valid numbers
         if (!isNaN(minPrice) && minPrice.trim() !== "") {           //check if minPrice is provided and is a valid number
             query.basePrice = { $gte: Number(minPrice) };
         }
         if (!isNaN(maxPrice) && maxPrice.trim() !== "") {                         //check if maxPrice is provided and is a valid number
             query.basePrice = { ...query.basePrice, $lte: Number(maxPrice) };
         }
-            
+
+        const  cacheKey = `search:${JSON.stringify(req.query)}`; 
+
+        const cachedCrops = await redisClient.get(cacheKey);
+
+        if(cachedCrops){
+            return res.status(200).json(JSON.parse(cachedCrops));
+        }
+        console.log('Fetching from MongoDB...');                                // checks if redis is working correctly
+    
         const crops = await Crop.find(query);
+
+        await redisClient.setEx(cacheKey,600, JSON.stringify(crops));     //cache the result for 10 minutes
         res.json(crops);
     } 
     catch(error){

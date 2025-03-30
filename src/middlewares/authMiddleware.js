@@ -7,7 +7,7 @@ exports.protect = async (req, res, next) => {
         token = req.headers.authorization.split(' ')[1];                                 //extract token from header
 
         try{
-            const decoded = jwt.verify(token,process.env.JWT_SECRET);               //verify token (decoded=payload of token which contains user info)
+            const decoded = jwt.verify(token,process.env.JWT_SECRET);               //verify token (decoded = payload of token which contains user info)
             req.user = await User.findById(decoded.id).select('-password');             //find user by id and exclude password
             next();
         } 
