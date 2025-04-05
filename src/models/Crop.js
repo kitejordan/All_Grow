@@ -25,7 +25,19 @@ const cropSchema = new mongoose.Schema({      // Schema for crops collection
     desciption : {
         type : String,
     },
-
+    biddingOpen : {
+        type : Boolean,
+        default: false
+    },
+    highestBid :{
+        type: Number,
+        default: null
+    },
+    highestBidder: {
+        type: mongoose.Schema.Types.ObjectId,           // Reference to User model
+        ref: 'User',
+        default: null
+    },
     status: {
         type: String,
         enum: ['available', 'sold'],

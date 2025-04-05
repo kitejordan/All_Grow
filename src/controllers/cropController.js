@@ -52,7 +52,7 @@ exports.getCropsByFarmer = async (req,res) =>{              //get crops of logge
 exports.searchCrops = async (req,res) => {                      //search crops based on name, minPrice, maxPrice
     try{
         const {name, minPrice, maxPrice} = req.query;           //extract from query string
-        let query = {};                                         //new empty object
+        let query = { status: "available"};                                         //new empty object
 
         if(name) {
             query.name = {$regex: new RegExp(name,"i")};            //case-insensitive search
@@ -76,7 +76,7 @@ exports.searchCrops = async (req,res) => {                      //search crops b
     
         const crops = await Crop.find(query);
 
-        await redisClient.setEx(cacheKey,600, JSON.stringify(crops));     //cache the result for 10 minutes
+        await redisClient.setEx(cacheKey,600, JSON.stringify(crops));           //cache the result for 10 minutes
         res.json(crops);
     } 
     catch(error){
